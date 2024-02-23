@@ -17,6 +17,34 @@ use Barryvdh\Snappy\Facades\SnappyPdf;
 class AttendanceController extends Controller
 {
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/employees/register-attendance",
+     *     summary="Register employee attendance",
+     *     tags={"Attendance"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StoreAttendanceRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Attendance successfully registered",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="data", ref="#/components/schemas/Attendance"),
+     *             @OA\Property(property="message", type="string", example="Attendance successfully registered")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object", example={ "field_name": { "The field is required." } })
+     *         )
+     *     )
+     * )
+     */
     public function registerAttendance(StoreAttendanceRequest $request)
     {
         $employee = Employee::find($request->employee_id);
@@ -43,6 +71,35 @@ class AttendanceController extends Controller
         return $this->attendanceRegisteredResponse($attendance);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/attendances",
+     *     summary="Get attendance records",
+     *     tags={"Attendance"},
+     *     @OA\Parameter(
+     *         name="from",
+     *         in="query",
+     *         required=true,
+     *         description="Start date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-01")
+     *     ),
+     *     @OA\Parameter(
+     *         name="to",
+     *         in="query",
+     *         required=true,
+     *         description="End date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-28")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="data", ref="#/components/schemas/AttendanceData")
+     *         )
+     *     )
+     * )
+     */
     public function getAttendance(Request $request)
     {
         $from = Carbon::parse($request->from)->addDay();
@@ -75,6 +132,31 @@ class AttendanceController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/attendance/export/excel",
+     *     summary="Export attendance records to Excel",
+     *     tags={"Attendance"},
+     *     @OA\Parameter(
+     *         name="from",
+     *         in="query",
+     *         required=true,
+     *         description="Start date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-01")
+     *     ),
+     *     @OA\Parameter(
+     *         name="to",
+     *         in="query",
+     *         required=true,
+     *         description="End date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-28")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *     )
+     * )
+     */
     public function exportAttendanceExcel(Request $request)
     {
         $from = Carbon::parse($request->from)->addDay()->format("Y-m-d");
@@ -83,6 +165,31 @@ class AttendanceController extends Controller
         return Excel::download(new AttendanceExport($from, $to), 'attendance.xlsx');
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/attendance/export/pdf",
+     *     summary="Export attendance records to PDF",
+     *     tags={"Attendance"},
+     *     @OA\Parameter(
+     *         name="from",
+     *         in="query",
+     *         required=true,
+     *         description="Start date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-01")
+     *     ),
+     *     @OA\Parameter(
+     *         name="to",
+     *         in="query",
+     *         required=true,
+     *         description="End date (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2024-02-28")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *     )
+     * )
+     */
     public function exportAttendancePdf(Request $request)
     {
         $from = Carbon::parse($request->from)->addDay()->format("Y-m-d");
@@ -102,6 +209,16 @@ class AttendanceController extends Controller
         return $pdf->download("export_{$from}_{$to}.pdf");
     }
 
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Successful operation",
+     *     @OA\JsonContent(
+     *         @OA\Property(property="status", type="integer", example=200),
+     *         @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/AttendanceRecord")),
+     *     )
+     * )
+     */
     private function attendanceRegisteredResponse($attendance)
     {
         return Response::json([
@@ -111,6 +228,17 @@ class AttendanceController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Attendance already registered",
+     *     @OA\JsonContent(
+     *         @OA\Property(property="status", type="integer", example=200),
+     *         @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/AttendanceRecord")),
+     *         @OA\Property(property="message", type="string", example="Attendance is already registered for this date."),
+     *     )
+     * )
+     */
     private function attendanceAlreadyRegisteredResponse($attendance)
     {
         return Response::json([

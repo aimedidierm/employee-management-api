@@ -13,6 +13,40 @@ use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 class EmployeeController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/v1/employees/get/{employee_code}",
+     *     summary="Get single employee by code",
+     *     tags={"Employees"},
+     *     @OA\Parameter(
+     *         name="employee_code",
+     *         in="path",
+     *         description="Employee code",
+     *         required=true,
+     *         example="EMP1234",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             properties={
+     *                 @OA\Property(property="data", ref="#/components/schemas/Employee"),
+     *                 @OA\Property(property="status", type="integer", example=200)
+     *             }
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Employee not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Employee not found"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     )
+     * )
+     */
     public function single(Request $request)
     {
         $employee = Employee::find($request->employee_id);
@@ -30,6 +64,33 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/employees/create",
+     *     summary="Create a new employee",
+     *     tags={"Employees"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/EmployeeCreateRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Employee successfully created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Employee successfully created"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Unprocessable entity",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Failed to create user"),
+     *             @OA\Property(property="status", type="integer", example=422)
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $this->validateEmployee($request);
@@ -55,6 +116,49 @@ class EmployeeController extends Controller
         ], HttpFoundationResponse::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/employees/update/{employee_code}",
+     *     summary="Update an existing employee",
+     *     tags={"Employees"},
+     *     @OA\Parameter(
+     *         name="employee_code",
+     *         in="path",
+     *         description="Employee code",
+     *         required=true,
+     *         example="EMP1234",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/EmployeeUpdateRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Employee successfully updated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Employee successfully updated"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Employee not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Employee not found"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Failed to update user"),
+     *             @OA\Property(property="status", type="integer", example=500)
+     *         )
+     *     )
+     * )
+     */
     public function update(Request $request, string $employee_code)
     {
         $this->validateEmployee($request);
@@ -84,6 +188,45 @@ class EmployeeController extends Controller
         ], HttpFoundationResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/employees/delete/{employee_code}",
+     *     summary="Delete an existing employee",
+     *     tags={"Employees"},
+     *     @OA\Parameter(
+     *         name="employee_code",
+     *         in="path",
+     *         description="Employee code",
+     *         required=true,
+     *         example="EMP1234",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Employee successfully deleted",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Employee successfully deleted"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Employee not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Employee not found"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Failed to delete user"),
+     *             @OA\Property(property="status", type="integer", example=500)
+     *         )
+     *     )
+     * )
+     */
     public function destroy(Request $request, string $employee_code)
     {
         $employee = Employee::whereCode($employee_code)->first();
@@ -111,6 +254,71 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/employees/search",
+     *     summary="Search employees",
+     *     tags={"Employees"},
+     *     @OA\Parameter(
+     *         name="position",
+     *         in="query",
+     *         description="Position of the employee",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Name of the employee",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="Email of the employee",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="phone",
+     *         in="query",
+     *         description="Phone number of the employee",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="query",
+     *         description="Code of the employee",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of results per page",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Employee")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Failed to fetch employees"),
+     *             @OA\Property(property="status", type="integer", example=500)
+     *         )
+     *     )
+     * )
+     */
     public function search(Request $request)
     {
         $query = Employee::with("todayAttendance")
@@ -161,6 +369,33 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/employees/details",
+     *     summary="Get employee details",
+     *     tags={"Employees"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/EmployeeUpdateRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             properties={
+     *                 @OA\Property(property="dob", type="string", format="date"),
+     *                 @OA\Property(property="national_id", type="string"),
+     *                 @OA\Property(property="phone", type="string"),
+     *                 @OA\Property(property="email", type="string", format="email"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="status", type="string", enum={"active", "inactive"}),
+     *                 @OA\Property(property="position", type="string", enum={"manager", "employee"}),
+     *             }
+     *         )
+     *     )
+     * )
+     */
     private function getEmployeeDetails(Request $request)
     {
         $employeeDetails = $request->only([
