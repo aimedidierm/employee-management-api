@@ -1,0 +1,625 @@
+openapi: 3.0.0
+paths:
+  /api/v1/employees/register-attendance:
+    post:
+      tags:
+        - Attendance
+      summary: 'Register employee attendance'
+      operationId: 32c2a982a8d021f5ab9de94ae6353b92
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreAttendanceRequest'
+      responses:
+        '200':
+          description: 'Attendance successfully registered'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: integer, example: 200 }
+                  data: { $ref: '#/components/schemas/Attendance' }
+                  message: { type: string, example: 'Attendance successfully registered' }
+                type: object
+        '422':
+          description: 'Validation error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'The given data was invalid.' }
+                  errors: { type: object, example: { field_name: ['The field is required.'] } }
+                type: object
+  /api/v1/attendances:
+    get:
+      tags:
+        - Attendance
+      summary: 'Get attendance records'
+      operationId: de3562f6e8549342fc4f0356b5b9918f
+      parameters:
+        -
+          name: from
+          in: query
+          description: 'Start date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-01'
+        -
+          name: to
+          in: query
+          description: 'End date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-28'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: integer, example: 200 }
+                  data: { $ref: '#/components/schemas/AttendanceData' }
+                type: object
+  /api/v1/attendance/export/excel:
+    get:
+      tags:
+        - Attendance
+      summary: 'Export attendance records to Excel'
+      operationId: eed5bfb9a70109bc7c2894c834b1c7ca
+      parameters:
+        -
+          name: from
+          in: query
+          description: 'Start date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-01'
+        -
+          name: to
+          in: query
+          description: 'End date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-28'
+      responses:
+        '200':
+          description: 'Successful operation'
+  /api/v1/attendance/export/pdf:
+    get:
+      tags:
+        - Attendance
+      summary: 'Export attendance records to PDF'
+      operationId: 9e242ca531e9a8ab9489c13f8e45e497
+      parameters:
+        -
+          name: from
+          in: query
+          description: 'Start date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-01'
+        -
+          name: to
+          in: query
+          description: 'End date (YYYY-MM-DD)'
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2024-02-28'
+      responses:
+        '200':
+          description: 'Successful operation'
+  /api/v1/auth/user:
+    get:
+      tags:
+        - Authentication
+      summary: 'Get authenticated user details'
+      operationId: b167dc335b28720b36271d69d3314500
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        -
+          sanctum: []
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: 'Authenticate user'
+      operationId: 5db09a35f965c6ca7529ed3c3cae8e21
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+              type: object
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Login success' }
+                  data: { properties: { token: { type: string, example: token_string }, user: { $ref: '#/components/schemas/User' } }, type: object }
+                  status: { type: integer, example: 200 }
+                type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Wrong Username/Password' }
+                  status: { type: integer, example: 401 }
+                type: object
+  /api/v1/auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: 'Register a new user'
+      operationId: d2361024a07caa3d3d466ee71a6e8ff3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - email
+                - password
+                - dob
+              properties:
+                name:
+                  type: string
+                  example: 'John Doe'
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+                dob:
+                  type: string
+                  format: date
+                  example: '1990-01-01'
+              type: object
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { properties: { token: { type: string, example: token_string }, user: { $ref: '#/components/schemas/User' } }, type: object }
+                  message: { type: string, example: 'User successfully created' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '422':
+          description: 'Unprocessable Entity'
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors: { type: object }
+                  status: { type: integer, example: 422 }
+                type: object
+  '/api/v1/auth/reset-link/{reset_code}':
+    get:
+      tags:
+        - Authentication
+      summary: 'View password reset page'
+      operationId: f7e4befed5d032697e53760a5524093f
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            text/html:
+              example: '<!DOCTYPE html><html><head>...</head><body>...</body></html>'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Invalid reset code or it is expired' }
+                  status: { type: integer, example: 404 }
+                type: object
+    post:
+      tags:
+        - Authentication
+      summary: 'Reset user password'
+      operationId: 47c42d2a86670ab6d5928cddf4225ac4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - password
+                - confirm_password
+              properties:
+                password:
+                  type: string
+                  format: password
+                  example: newpassword123
+                confirm_password:
+                  type: string
+                  format: password
+                  example: newpassword123
+              type: object
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Password reset success' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Invalid reset code or it is expired' }
+                  status: { type: integer, example: 404 }
+                type: object
+  /api/v1/auth/request-reset-link:
+    post:
+      tags:
+        - Authentication
+      summary: 'Request a reset password link'
+      operationId: 1674fc721956267d45dafdc69779e7d0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+              type: object
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Reset link was sent to your email' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'There is no account registered with that email' }
+                  status: { type: integer, example: 404 }
+                type: object
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: 'Logout user'
+      operationId: 8f1a443d39c3bf383f851fbb51253c64
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Logout success' }
+                  status: { type: integer, example: 200 }
+                type: object
+      security:
+        -
+          sanctum: []
+  '/api/v1/employees/get/{employee_code}':
+    get:
+      tags:
+        - Employees
+      summary: 'Get single employee by code'
+      operationId: efa275da58ffd05df6ab0302eeadfb5c
+      parameters:
+        -
+          name: employee_code
+          in: path
+          description: 'Employee code'
+          required: true
+          schema:
+            type: string
+          example: EMP1234
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { $ref: '#/components/schemas/Employee' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '404':
+          description: 'Employee not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Employee not found' }
+                  status: { type: integer, example: 404 }
+                type: object
+  /api/v1/employees/create:
+    post:
+      tags:
+        - Employees
+      summary: 'Create a new employee'
+      operationId: a61de33ed0121b6332c20de04b4cec6d
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreateRequest'
+      responses:
+        '200':
+          description: 'Employee successfully created'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Employee successfully created' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '422':
+          description: 'Unprocessable entity'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Failed to create user' }
+                  status: { type: integer, example: 422 }
+                type: object
+  '/api/v1/employees/update/{employee_code}':
+    patch:
+      tags:
+        - Employees
+      summary: 'Update an existing employee'
+      operationId: b26083ffdceaf1f1826a36f66ef97e77
+      parameters:
+        -
+          name: employee_code
+          in: path
+          description: 'Employee code'
+          required: true
+          schema:
+            type: string
+          example: EMP1234
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: 'Employee successfully updated'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Employee successfully updated' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '404':
+          description: 'Employee not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Employee not found' }
+                  status: { type: integer, example: 404 }
+                type: object
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Failed to update user' }
+                  status: { type: integer, example: 500 }
+                type: object
+  '/api/v1/employees/delete/{employee_code}':
+    delete:
+      tags:
+        - Employees
+      summary: 'Delete an existing employee'
+      operationId: 622167a06412f617fe80b3952e36dd33
+      parameters:
+        -
+          name: employee_code
+          in: path
+          description: 'Employee code'
+          required: true
+          schema:
+            type: string
+          example: EMP1234
+      responses:
+        '200':
+          description: 'Employee successfully deleted'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Employee successfully deleted' }
+                  status: { type: integer, example: 200 }
+                type: object
+        '404':
+          description: 'Employee not found'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Employee not found' }
+                  status: { type: integer, example: 404 }
+                type: object
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Failed to delete user' }
+                  status: { type: integer, example: 500 }
+                type: object
+  /api/v1/employees/search:
+    get:
+      tags:
+        - Employees
+      summary: 'Search employees'
+      operationId: b23c84532597b8d24d62b5b03d5bd30a
+      parameters:
+        -
+          name: position
+          in: query
+          description: 'Position of the employee'
+          required: false
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: 'Name of the employee'
+          required: false
+          schema:
+            type: string
+        -
+          name: email
+          in: query
+          description: 'Email of the employee'
+          required: false
+          schema:
+            type: string
+        -
+          name: phone
+          in: query
+          description: 'Phone number of the employee'
+          required: false
+          schema:
+            type: string
+        -
+          name: code
+          in: query
+          description: 'Code of the employee'
+          required: false
+          schema:
+            type: string
+        -
+          name: limit
+          in: query
+          description: 'Number of results per page'
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Failed to fetch employees' }
+                  status: { type: integer, example: 500 }
+                type: object
+  /api/v1/employees/details:
+    post:
+      tags:
+        - Employees
+      summary: 'Get employee details'
+      operationId: 8842fb4ffef038865ffe896d155ccc2a
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  dob: { type: string, format: date }
+                  national_id: { type: string }
+                  phone: { type: string }
+                  email: { type: string, format: email }
+                  name: { type: string }
+                  status: { type: string, enum: [active, inactive] }
+                  position: { type: string, enum: [manager, employee] }
+                type: object
+components:
+  responses:
+    '200':
+      description: 'Successful operation'
+      content:
+        application/json:
+          schema:
+            properties:
+              status:
+                type: integer
+                example: 200
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttendanceRecord'
+            type: object
