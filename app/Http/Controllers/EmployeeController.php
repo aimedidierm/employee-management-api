@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserStatus;
 use App\Enums\UserType;
 use App\Models\Employee;
 use App\Services\EmployeeCodeGenerator;
@@ -102,7 +103,6 @@ class EmployeeController extends Controller
         $employee = Employee::create($employeeDetails);
 
         if ($employee) {
-            $this->logActivity('Created an employee', $employee);
 
             return response()->json([
                 "message" => $employee->name . " successfully created",
@@ -364,7 +364,7 @@ class EmployeeController extends Controller
             "phone" => "required|unique:employees,phone",
             "national_id" => "required|unique:employees,national_id",
             "position" => [Rule::in(array_values((new ReflectionClass(UserType::class))->getConstants())), "required"],
-            "status" => [Rule::in(array_values((new ReflectionClass(UserType::class))->getConstants())), "required"],
+            "status" => [Rule::in(array_values((new ReflectionClass(UserStatus::class))->getConstants())), "required"],
             "dob" => "date|required",
         ]);
     }
