@@ -10,7 +10,6 @@ The project is an API for managing employees with advanced features implemented 
 
 -   Laravel 10
 -   PHPUnitfor tests
--   Laravel Sail
 -   Laravel Sanctum for authentication
 -   laravel-snappy (for PDF reports)
 -   Laravel Excel (for Excel reports)
@@ -65,12 +64,6 @@ php artisan key:generate
 
 ```bash
 php artisan migrate --seed
-```
-
-6. Serve the application using Laravel Sail:
-
-```bash
-./vendor/bin/sail up
 ```
 
 ## Bonus Points
